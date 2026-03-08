@@ -6,7 +6,6 @@ import TableFormPage from "./pages/TableFormPage";
 import SettingsTables from "./pages/SettingsTables";
 
 function App() {
-
   return (
     <BrowserRouter>
 
@@ -20,6 +19,16 @@ function App() {
 
           <Route
             path="/table/:table/new"
+            element={<TableFormPage />}
+          />
+
+          <Route
+            path="/table/:table/view/:id"
+            element={<TableFormPage />}
+          />
+
+          <Route
+            path="/table/:table/edit/:id"
             element={<TableFormPage />}
           />
 

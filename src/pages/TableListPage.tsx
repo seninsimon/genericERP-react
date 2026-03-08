@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, Table } from "@mantine/core";
-import { getTableData } from "../api/api";
+import { Button, Table, Group } from "@mantine/core";
+import { getTableData, deleteData } from "../api/api";
 
 export default function TableListPage() {
   const { table } = useParams();
@@ -18,6 +18,13 @@ export default function TableListPage() {
     setData(res.data);
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
+
+    await deleteData(table!, id);
+    loadData();
+  };
+
   if (!data.length) {
     return (
       <div>
@@ -28,7 +35,7 @@ export default function TableListPage() {
     );
   }
 
-  const columns = Object.keys(data[0]);
+  const columns = Object.keys(data[0]).filter((col) => col !== "_id");
 
   return (
     <div>
@@ -40,24 +47,67 @@ export default function TableListPage() {
         Add New
       </Button>
 
-      <Table>
+      <Table striped highlightOnHover>
 
         <thead>
           <tr>
+
             {columns.map((col) => (
               <th key={col}>{col}</th>
             ))}
+
+            <th>Actions</th>
+
           </tr>
         </thead>
 
         <tbody>
+
           {data.map((row) => (
             <tr key={row._id}>
+
               {columns.map((col) => (
-                <td key={col}>{row[col]}</td>
+                <td key={col}>{String(row[col])}</td>
               ))}
+
+              <td>
+                <Group gap="xs">
+
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() =>
+                      navigate(`/table/${table}/view/${row._id}`)
+                    }
+                  >
+                    View
+                  </Button>
+
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() =>
+                      navigate(`/table/${table}/edit/${row._id}`)
+                    }
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    size="xs"
+                    color="red"
+                    variant="light"
+                    onClick={() => handleDelete(row._id)}
+                  >
+                    Delete
+                  </Button>
+
+                </Group>
+              </td>
+
             </tr>
           ))}
+
         </tbody>
 
       </Table>
