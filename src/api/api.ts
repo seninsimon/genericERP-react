@@ -24,8 +24,16 @@ export const updateColumn = (table: string, name: string, data: any) =>
 
 //tables
 
-export const getTableData = (table: string) =>
-  api.get(`/table/${table}`);
+export const getTableData = (
+  table: string,
+  params: {
+    page: number;
+    limit: number;
+    search?: string;
+    sort?: string;
+    order?: "asc" | "desc";
+  }
+) => api.get(`/table/${table}`, { params });
 
 export const insertData = (table: string, data: any) =>
   api.post(`/table/${table}`, data);

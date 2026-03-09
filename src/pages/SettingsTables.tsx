@@ -1,12 +1,7 @@
-import { useEffect, useState } from "react";
-import {
-  Button,
-  TextInput,
-  Select,
-  Table,
-  Group,
-  Checkbox,
-} from "@mantine/core";
+import { useEffect, useMemo, useState } from "react";
+import { Button, TextInput, Select, Group, Checkbox } from "@mantine/core";
+import type { MRT_ColumnDef } from "mantine-react-table";
+import AppTable from "../components/MantineTable";
 
 import {
   createTable,
@@ -20,7 +15,7 @@ import {
 export default function SettingsTables() {
   const [tables, setTables] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState("");
-  const [columns, setColumns] = useState<any[]>([]);
+  const [columnsData, setColumnsData] = useState<any[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
 
   const [tableName, setTableName] = useState("");
@@ -42,25 +37,24 @@ export default function SettingsTables() {
 
   const loadSchema = async (table: string) => {
     const res = await getSchema(table);
-    setColumns(res.data.columns);
-    setEditing(null);
+    setColumnsData(res.data.columns);
   };
 
   const createNewTable = async () => {
     if (!tableName.trim()) return;
 
-    await createTable({ tableName: tableName.trim() });
+    await createTable({ tableName });
 
     setTableName("");
     loadTables();
   };
 
   const addNewColumn = async () => {
-    if (!selectedTable || !columnName.trim()) return;
+    if (!columnName.trim()) return;
 
     await addColumn(selectedTable, {
-      name: columnName.trim(),
-      label: columnLabel.trim() || columnName.trim(),
+      name: columnName,
+      label: columnLabel || columnName,
       type: columnType,
       showInTable,
       ref: columnType === "relation" ? refTable : null,
@@ -76,31 +70,18 @@ export default function SettingsTables() {
   };
 
   const removeColumn = async (name: string) => {
-    if (!window.confirm(`Delete column "${name}"?`)) return;
-
     await deleteColumn(selectedTable, name);
     loadSchema(selectedTable);
   };
 
   const saveColumn = async (col: any) => {
-    await updateColumn(selectedTable, col.name, {
-      label: col.label,
-      type: col.type,
-      showInTable: col.showInTable,
-      ref: col.type === "relation" ? col.ref : null,
-    });
-
-    setEditing(null);
-    loadSchema(selectedTable);
-  };
-
-  const cancelEdit = () => {
+    await updateColumn(selectedTable, col.name, col);
     setEditing(null);
     loadSchema(selectedTable);
   };
 
   const updateLocalColumn = (name: string, key: string, value: any) => {
-    setColumns((prev) =>
+    setColumnsData((prev) =>
       prev.map((col) => (col.name === name ? { ...col, [key]: value } : col)),
     );
   };
@@ -111,235 +92,243 @@ export default function SettingsTables() {
     { value: "date", label: "Date" },
     { value: "boolean", label: "Boolean" },
     { value: "relation", label: "Relation" },
+    { value: "options", label: "Options" },
   ];
+
+  const columns = useMemo<MRT_ColumnDef<any>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "Name",
+        size: 180,
+      },
+
+      {
+        accessorKey: "label",
+        header: "Label",
+        size: 200,
+        Cell: ({ row }) => {
+          const col = row.original;
+
+          if (editing === col.name) {
+            return (
+              <TextInput
+                value={col.label}
+                onChange={(e) =>
+                  updateLocalColumn(col.name, "label", e.target.value)
+                }
+              />
+            );
+          }
+
+          return col.label;
+        },
+      },
+
+      {
+        accessorKey: "type",
+        header: "Type",
+        size: 160,
+        Cell: ({ row }) => {
+          const col = row.original;
+
+          if (editing === col.name) {
+            return (
+              <Select
+                data={columnTypes}
+                value={col.type}
+                onChange={(v) => {
+                  updateLocalColumn(col.name, "type", v);
+                  if (v !== "relation") {
+                    updateLocalColumn(col.name, "ref", null);
+                  }
+                }}
+              />
+            );
+          }
+
+          return col.type;
+        },
+      },
+
+      {
+        accessorKey: "ref",
+        header: "Ref",
+        size: 180,
+        Cell: ({ row }) => {
+          const col = row.original;
+
+          if (editing === col.name && col.type === "relation") {
+            return (
+              <Select
+                placeholder="Reference Table"
+                data={tables.map((t) => ({
+                  value: t.tableName,
+                  label: t.tableName,
+                }))}
+                value={col.ref || ""}
+                onChange={(v) => updateLocalColumn(col.name, "ref", v)}
+              />
+            );
+          }
+
+          return col.ref || "-";
+        },
+      },
+
+      {
+        accessorKey: "showInTable",
+        header: "Show",
+        size: 120,
+        Cell: ({ row }) => {
+          const col = row.original;
+
+          if (editing === col.name) {
+            return (
+              <Checkbox
+                checked={col.showInTable}
+                onChange={(e) =>
+                  updateLocalColumn(
+                    col.name,
+                    "showInTable",
+                    e.currentTarget.checked,
+                  )
+                }
+              />
+            );
+          }
+
+          return col.showInTable ? "Yes" : "No";
+        },
+      },
+
+      {
+        id: "actions",
+        header: "Actions",
+        size: 220,
+        Cell: ({ row }) => {
+          const col = row.original;
+
+          return (
+            <Group gap="xs" wrap="nowrap">
+              {editing === col.name ? (
+                <>
+                  <Button
+                    size="xs"
+                    color="teal"
+                    onClick={() => saveColumn(col)}
+                  >
+                    Save
+                  </Button>
+
+                  <Button
+                    size="xs"
+                    variant="default"
+                    onClick={() => setEditing(null)}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    onClick={() => setEditing(col.name)}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    size="xs"
+                    color="red"
+                    variant="default"
+                    onClick={() => removeColumn(col.name)}
+                  >
+                    Delete
+                  </Button>
+                </>
+              )}
+            </Group>
+          );
+        },
+      },
+    ],
+    [columnsData, editing, tables],
+  );
 
   return (
     <div className="w-full px-8 py-10">
-      {/* Create Table */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-semibold mb-6">Create Table</h2>
+      <h2 className="text-2xl font-semibold mb-6">Create Table</h2>
 
-        <Group align="flex-end" gap="md" style={{ maxWidth: 520 }}>
-          <TextInput
-            placeholder="Table name"
-            value={tableName}
-            onChange={(e) => setTableName(e.target.value)}
-            style={{ flex: 1 }}
-          />
-
-          <Button onClick={createNewTable}>Create</Button>
-        </Group>
-      </div>
-
-      {/* Columns */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-6">Table Columns</h2>
-
-        <Select
-          placeholder="Select table"
-          data={tables.map((t) => ({
-            value: t.tableName,
-            label: t.tableName,
-          }))}
-          value={selectedTable}
-          onChange={(value) => {
-            setSelectedTable(value || "");
-            if (value) loadSchema(value);
-          }}
-          style={{ maxWidth: 420, marginBottom: "2rem" }}
+      <Group mb="lg">
+        <TextInput
+          placeholder="Table name"
+          value={tableName}
+          onChange={(e) => setTableName(e.target.value)}
         />
 
-        {selectedTable && (
-          <>
-            {/* Add Column */}
-            <div className="mb-10">
-              <h3 className="text-lg font-medium mb-4">Add New Column</h3>
+        <Button onClick={createNewTable}>Create</Button>
+      </Group>
 
-              <Group align="flex-end" gap="md" wrap="wrap">
-                <TextInput
-                  placeholder="Column Name"
-                  value={columnName}
-                  onChange={(e) => setColumnName(e.target.value)}
-                  style={{ width: 220 }}
-                />
+      <Select
+        placeholder="Select table"
+        data={tables.map((t) => ({
+          value: t.tableName,
+          label: t.tableName,
+        }))}
+        value={selectedTable}
+        onChange={(v) => {
+          setSelectedTable(v || "");
+          if (v) loadSchema(v);
+        }}
+      />
 
-                <TextInput
-                  placeholder="Column Label"
-                  value={columnLabel}
-                  onChange={(e) => setColumnLabel(e.target.value)}
-                  style={{ width: 240 }}
-                />
+      {selectedTable && (
+        <>
+          <AppTable columns={columns} data={columnsData} />
 
-                <Select
-                  value={columnType}
-                  data={columnTypes}
-                  onChange={(v) => setColumnType(v || "text")}
-                  style={{ width: 180 }}
-                />
+          <Group mt="lg">
+            <TextInput
+              placeholder="Column Name"
+              value={columnName}
+              onChange={(e) => setColumnName(e.target.value)}
+            />
 
-                {columnType === "relation" && (
-                  <Select
-                    placeholder="Reference Table"
-                    data={tables.map((t) => ({
-                      value: t.tableName,
-                      label: t.tableName,
-                    }))}
-                    value={refTable}
-                    onChange={(v) => setRefTable(v || "")}
-                    style={{ width: 200 }}
-                  />
-                )}
+            <TextInput
+              placeholder="Column Label"
+              value={columnLabel}
+              onChange={(e) => setColumnLabel(e.target.value)}
+            />
 
-                <Checkbox
-                  label="Show in Table"
-                  checked={showInTable}
-                  onChange={(e) => setShowInTable(e.currentTarget.checked)}
-                />
+            <Select
+              data={columnTypes}
+              value={columnType}
+              onChange={(v) => setColumnType(v || "text")}
+            />
 
-                <Button onClick={addNewColumn}>Add Column</Button>
-              </Group>
-            </div>
+            {columnType === "relation" && (
+              <Select
+                placeholder="Reference Table"
+                data={tables.map((t) => ({
+                  value: t.tableName,
+                  label: t.tableName,
+                }))}
+                value={refTable}
+                onChange={(v) => setRefTable(v || "")}
+              />
+            )}
 
-            {/* Column List */}
-            <Table striped withColumnBorders highlightOnHover>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Label</th>
-                  <th>Type</th>
-                  <th>Ref</th>
-                  <th>Show</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
+            <Checkbox
+              label="Show"
+              checked={showInTable}
+              onChange={(e) => setShowInTable(e.currentTarget.checked)}
+            />
 
-              <tbody>
-                {columns.map((col) => {
-                  const isEditing = editing === col.name;
-
-                  return (
-                    <tr key={col.name}>
-                      <td>
-                        <b>{col.name}</b>
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <TextInput
-                            value={col.label || ""}
-                            onChange={(e) =>
-                              updateLocalColumn(
-                                col.name,
-                                "label",
-                                e.target.value,
-                              )
-                            }
-                          />
-                        ) : (
-                          col.label
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <Select
-                            value={col.type}
-                            data={columnTypes}
-                            onChange={(v) =>
-                              updateLocalColumn(col.name, "type", v)
-                            }
-                          />
-                        ) : (
-                          col.type
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing && col.type === "relation" ? (
-                          <Select
-                            value={col.ref}
-                            data={tables.map((t) => ({
-                              value: t.tableName,
-                              label: t.tableName,
-                            }))}
-                            onChange={(v) =>
-                              updateLocalColumn(col.name, "ref", v)
-                            }
-                          />
-                        ) : (
-                          col.ref || "-"
-                        )}
-                      </td>
-
-                      <td>
-                        {isEditing ? (
-                          <Checkbox
-                            checked={col.showInTable}
-                            onChange={(e) =>
-                              updateLocalColumn(
-                                col.name,
-                                "showInTable",
-                                e.currentTarget.checked,
-                              )
-                            }
-                          />
-                        ) : col.showInTable ? (
-                          "Yes"
-                        ) : (
-                          "No"
-                        )}
-                      </td>
-
-                      <td>
-                        <Group gap="xs">
-                          {isEditing ? (
-                            <>
-                              <Button
-                                size="xs"
-                                color="teal"
-                                onClick={() => saveColumn(col)}
-                              >
-                                Save
-                              </Button>
-
-                              <Button
-                                size="xs"
-                                variant="default"
-                                onClick={cancelEdit}
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                size="xs"
-                                variant="default"
-                                onClick={() => setEditing(col.name)}
-                              >
-                                Edit
-                              </Button>
-
-                              <Button
-                                size="xs"
-                                color="red"
-                                variant="default"
-                                onClick={() => removeColumn(col.name)}
-                              >
-                                Delete
-                              </Button>
-                            </>
-                          )}
-                        </Group>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          </>
-        )}
-      </div>
+            <Button onClick={addNewColumn}>Add Column</Button>
+          </Group>
+        </>
+      )}
     </div>
   );
 }

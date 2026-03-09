@@ -51,22 +51,26 @@ export default function DynamicForm({ table }: any) {
     setForm(res.data);
   };
 
-  const loadRelations = async () => {
-    const rels: any = {};
+const loadRelations = async () => {
+  const rels: any = {};
 
-    for (const col of schema.columns) {
-      if (col.type === "relation" && col.ref) {
-        const res = await getTableData(col.ref);
+  for (const col of schema.columns) {
+    if (col.type === "relation" && col.ref) {
 
-        rels[col.name] = res.data.map((item: any) => ({
-          value: item._id,
-          label: item.name || item.label || item._id,
-        }));
-      }
+      const res = await getTableData(col.ref, {
+        page: 1,
+        limit: 1000,
+      });
+
+      rels[col.name] = res.data.data.map((item: any) => ({
+        value: item._id,
+        label: Object.values(item)[1] || item._id,
+      }));
     }
+  }
 
-    setRelations(rels);
-  };
+  setRelations(rels);
+};
 
   const handleChange = (name: string, value: any) => {
     setForm({
