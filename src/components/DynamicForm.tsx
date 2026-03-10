@@ -1,106 +1,183 @@
 import { useEffect, useState } from "react";
 import {
-  getSchema,
-  insertData,
-  updateData,
-  getSingleData,
-  getTableData,
-} from "../api/api";
-
-import {
   Button,
   TextInput,
   NumberInput,
   Checkbox,
   Select,
   MultiSelect,
+  Stack,
+  Loader,
+  Group,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+
+import {
+  useSchema,
+  useSingleData,
+  useInsertData,
+  useUpdateData,
+} from "../api/reactQueryHooks/useTables";
+
+import api from "../api/api";
 
 export default function DynamicForm({ table }: any) {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [schema, setSchema] = useState<any>(null);
-  const [form, setForm] = useState<any>({});
-  const [relations, setRelations] = useState<any>({});
-
   const isEdit = location.pathname.includes("/edit/");
   const isView = location.pathname.includes("/view/");
 
-  useEffect(() => {
-    loadSchema();
-  }, [table]);
+  const [form, setForm] = useState<any>({});
+  const [relations, setRelations] = useState<any>({});
+
+  // =========================
+  // QUERIES
+  // =========================
+
+  const { data: schema, isLoading: schemaLoading } = useSchema(table);
+
+  const { data: singleData } = useSingleData(table, id || "");
+
+  const insertMutation = useInsertData(table);
+  const updateMutation = useUpdateData(table);
+
+  // =========================
+  // NORMALIZE SINGLE DATA
+  // =========================
 
   useEffect(() => {
-    if (id) loadSingle();
-  }, [id]);
+    if (!singleData || !schema) return;
+
+    const normalized: any = { ...singleData };
+
+    schema.columns.forEach((col: any) => {
+      if (col.type === "relation") {
+        if (col.multiple && Array.isArray(normalized[col.name])) {
+          normalized[col.name] = normalized[col.name].map((v: any) =>
+            typeof v === "object" ? v._id : v,
+          );
+        }
+
+        if (!col.multiple && normalized[col.name]) {
+          normalized[col.name] =
+            typeof normalized[col.name] === "object"
+              ? normalized[col.name]._id
+              : normalized[col.name];
+        }
+      }
+    });
+
+    setForm(normalized);
+  }, [singleData, schema]);
+
+  // =========================
+  // LOAD RELATION OPTIONS
+  // =========================
 
   useEffect(() => {
-    if (schema) loadRelations();
+    if (!schema) return;
+
+    const loadRelations = async () => {
+      const rels: any = {};
+
+      for (const col of schema.columns) {
+        if (col.type === "relation" && col.ref) {
+          const res = await api.get(`/table/${col.ref}`, {
+            params: { page: 1, limit: 1000 },
+          });
+
+          const rows = res.data?.data || [];
+
+          rels[col.name] = rows.map((item: any) => ({
+            value: String(item._id),
+            label: Object.values(item)[1] || item._id,
+          }));
+        }
+      }
+
+      setRelations(rels);
+    };
+
+    loadRelations();
   }, [schema]);
 
-  const loadSchema = async () => {
-    const res = await getSchema(table);
-    setSchema(res.data);
-  };
-
-  const loadSingle = async () => {
-    const res = await getSingleData(table, id!);
-    setForm(res.data);
-  };
-
-  const loadRelations = async () => {
-    const rels: any = {};
-
-    for (const col of schema.columns) {
-      if (col.type === "relation" && col.ref) {
-        const res = await getTableData(col.ref, {
-          page: 1,
-          limit: 1000,
-        });
-
-        rels[col.name] = res.data.data.map((item: any) => ({
-          value: item._id,
-          label: Object.values(item)[1] || item._id,
-        }));
-      }
-    }
-
-    setRelations(rels);
-  };
+  // =========================
+  // FORM CHANGE
+  // =========================
 
   const handleChange = (name: string, value: any) => {
-    setForm({
-      ...form,
+    setForm((prev: any) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
+
+  // =========================
+  // SUBMIT
+  // =========================
 
   const submit = async () => {
-    const { _id, ...data } = form;
+    try {
+      const { _id, ...data } = form;
 
-    if (isEdit) {
-      await updateData(table, id!, data);
-      alert("Updated successfully");
-    } else {
-      await insertData(table, data);
-      alert("Saved successfully");
+      if (isEdit) {
+        await updateMutation.mutateAsync({
+          id: id!,
+          data,
+        });
+
+        notifications.show({
+          title: "Success",
+          message: "Record updated successfully",
+          color: "green",
+        });
+      } else {
+        await insertMutation.mutateAsync(data);
+
+        notifications.show({
+          title: "Success",
+          message: "Record created successfully",
+          color: "green",
+        });
+      }
+
+      navigate(`/table/${table}`);
+    } catch (error) {
+      notifications.show({
+        title: "Error",
+        message: "Something went wrong",
+        color: "red",
+      });
     }
-
-    navigate(`/table/${table}`);
   };
+
+  // =========================
+  // LOADING
+  // =========================
+
+  if (schemaLoading) {
+    return (
+      <Group justify="center" mt="xl">
+        <Loader />
+      </Group>
+    );
+  }
 
   if (!schema) return null;
 
+  // =========================
+  // RENDER
+  // =========================
+
   return (
-    <div>
+    <Stack maw={600} mx="auto" mt="lg">
       {schema.columns.map((col: any) => {
         const value =
-          form[col.name] ??
-          (col.type === "relation" && col.multiple ? [] : "");
+          form[col.name] ?? (col.type === "relation" && col.multiple ? [] : "");
 
         // TEXT
         if (col.type === "text") {
@@ -111,7 +188,6 @@ export default function DynamicForm({ table }: any) {
               value={value}
               disabled={isView}
               onChange={(e) => handleChange(col.name, e.target.value)}
-              mb="sm"
             />
           );
         }
@@ -125,7 +201,6 @@ export default function DynamicForm({ table }: any) {
               value={value}
               disabled={isView}
               onChange={(v) => handleChange(col.name, v)}
-              mb="sm"
             />
           );
         }
@@ -139,7 +214,6 @@ export default function DynamicForm({ table }: any) {
               checked={value || false}
               disabled={isView}
               onChange={(e) => handleChange(col.name, e.currentTarget.checked)}
-              mb="sm"
             />
           );
         }
@@ -154,42 +228,37 @@ export default function DynamicForm({ table }: any) {
               value={value}
               disabled={isView}
               onChange={(e) => handleChange(col.name, e.target.value)}
-              mb="sm"
             />
           );
         }
 
         // RELATION
         if (col.type === "relation") {
-          // MULTI RELATION
           if (col.multiple) {
             return (
               <MultiSelect
                 key={col.name}
                 label={col.label}
                 data={relations[col.name] || []}
-                value={value}
+                value={Array.isArray(value) ? value : []}
                 disabled={isView}
                 searchable
                 clearable
                 onChange={(v) => handleChange(col.name, v)}
-                mb="sm"
               />
             );
           }
 
-          // SINGLE RELATION
           return (
             <Select
               key={col.name}
               label={col.label}
               data={relations[col.name] || []}
-              value={value}
+              value={value || null}
               disabled={isView}
               searchable
               clearable
               onChange={(v) => handleChange(col.name, v)}
-              mb="sm"
             />
           );
         }
@@ -198,18 +267,17 @@ export default function DynamicForm({ table }: any) {
       })}
 
       {!isView && (
-        <Button mt="md" onClick={submit}>
+        <Button
+          loading={insertMutation.isPending || updateMutation.isPending}
+          onClick={submit}
+        >
           {isEdit ? "Update" : "Save"}
         </Button>
       )}
 
-      <Button
-        mt="md"
-        variant="light"
-        onClick={() => navigate(`/table/${table}`)}
-      >
+      <Button variant="light" onClick={() => navigate(`/table/${table}`)}>
         Back
       </Button>
-    </div>
+    </Stack>
   );
 }

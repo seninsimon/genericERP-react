@@ -47,8 +47,8 @@ export default function TableListPage() {
         order: sortOrder,
       });
 
-      setData(res.data.data);
-      setRowCount(res.data.total);
+      setData(res.data.data || []);
+      setRowCount(res.data.total || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -69,22 +69,25 @@ export default function TableListPage() {
   const columns = useMemo<MRT_ColumnDef<RowData>[]>(() => {
     if (!data.length) return [];
 
-    return Object.keys(data[0])
+    // collect all keys from all rows
+    const allKeys = Array.from(
+      new Set(data.flatMap((row) => Object.keys(row))),
+    );
+
+    return allKeys
       .filter((key) => key !== "_id" && key !== "__v")
       .map((key) => ({
         accessorKey: key,
-        header: key.toUpperCase(),
+        header: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         size: 180,
 
         Cell: ({ cell }) => {
           const value = cell.getValue<any>();
 
-          // handle arrays (relations)
           if (Array.isArray(value)) {
             return <span>{value.join(", ")}</span>;
           }
 
-          // handle objects
           if (typeof value === "object" && value !== null) {
             return <span>{JSON.stringify(value)}</span>;
           }
@@ -99,16 +102,44 @@ export default function TableListPage() {
   return (
     <Box p="md">
       <Group mb="md">
-        <Button onClick={() => navigate(`/table/${table}/new`)}>
-          Add New
-        </Button>
+        <Button onClick={() => navigate(`/table/${table}/new`)}>Add New</Button>
       </Group>
 
       <MantineReactTable
         columns={columns}
+        mantineTableHeadCellProps={{
+          style: {
+            background: "lightblue",
+            color: "black",
+            fontWeight: 600,
+            fontSize: "15px",
+            padding: "8px",
+          },
+        }}
+        mantineTableBodyCellProps={{
+          style: {
+            padding: "4px 8px",
+            fontSize: "15px",
+            height: "28px",
+          },
+        }}
+        mantineTableProps={{
+          striped: true,
+          highlightOnHover: true,
+          withColumnBorders: true,
+        }}
+        mantineTopToolbarProps={{
+          style: {
+            background: "lightgray",
+            borderBottom: "1px solid #D1D5DB",
+            padding: "4px 8px",
+            minHeight: "50px",
+          },
+        }}
         data={data}
         manualPagination
         manualSorting
+        enableColumnOrdering
         manualFiltering
         rowCount={rowCount}
         state={{

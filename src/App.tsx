@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Notifications } from "@mantine/notifications";
+
+import ErrorBoundary from "./components/ErrorBoundary";
 import MainLayout from "./layout/MainLayout";
 
 import TableListPage from "./pages/TableListPage";
@@ -9,32 +12,31 @@ function App() {
   return (
     <BrowserRouter>
 
-      <Routes>
+      {/* GLOBAL NOTIFICATIONS */}
+      <Notifications position="top-right" />
 
-        <Route element={<MainLayout />}>
+      {/* GLOBAL ERROR BOUNDARY */}
+      <ErrorBoundary>
 
-          <Route path="/settings" element={<SettingsTables />} />
+        <Routes>
 
-          <Route path="/table/:table" element={<TableListPage />} />
+          <Route element={<MainLayout />}>
 
-          <Route
-            path="/table/:table/new"
-            element={<TableFormPage />}
-          />
+            <Route path="/settings" element={<SettingsTables />} />
 
-          <Route
-            path="/table/:table/view/:id"
-            element={<TableFormPage />}
-          />
+            <Route path="/table/:table" element={<TableListPage />} />
 
-          <Route
-            path="/table/:table/edit/:id"
-            element={<TableFormPage />}
-          />
+            <Route path="/table/:table/new" element={<TableFormPage />} />
 
-        </Route>
+            <Route path="/table/:table/view/:id" element={<TableFormPage />} />
 
-      </Routes>
+            <Route path="/table/:table/edit/:id" element={<TableFormPage />} />
+
+          </Route>
+
+        </Routes>
+
+      </ErrorBoundary>
 
     </BrowserRouter>
   );

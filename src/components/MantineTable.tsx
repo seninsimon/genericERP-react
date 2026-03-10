@@ -14,6 +14,27 @@ export default function MantineTable<T extends Record<string, any>>({
   return (
     <MantineReactTable
       columns={columns}
+      mantineTableHeadCellProps={{
+        style: {
+          background: "lightblue",
+          color: "black",
+          fontWeight: 600,
+          fontSize: "15px",
+          padding: "8px",
+        },
+      }}
+      mantineTableBodyCellProps={{
+        style: {
+          padding: "4px 8px",
+          fontSize: "15px",
+          height: "28px",
+        },
+      }}
+      mantineTableProps={{
+        striped: true,
+        highlightOnHover: true,
+        withColumnBorders: true,
+      }}
       data={data}
       enableColumnPinning
       enableColumnResizing
