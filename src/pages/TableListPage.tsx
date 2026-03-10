@@ -75,6 +75,22 @@ export default function TableListPage() {
         accessorKey: key,
         header: key.toUpperCase(),
         size: 180,
+
+        Cell: ({ cell }) => {
+          const value = cell.getValue<any>();
+
+          // handle arrays (relations)
+          if (Array.isArray(value)) {
+            return <span>{value.join(", ")}</span>;
+          }
+
+          // handle objects
+          if (typeof value === "object" && value !== null) {
+            return <span>{JSON.stringify(value)}</span>;
+          }
+
+          return <span>{String(value ?? "")}</span>;
+        },
       }));
   }, [data]);
 
@@ -83,7 +99,9 @@ export default function TableListPage() {
   return (
     <Box p="md">
       <Group mb="md">
-        <Button onClick={() => navigate(`/table/${table}/new`)}>Add New</Button>
+        <Button onClick={() => navigate(`/table/${table}/new`)}>
+          Add New
+        </Button>
       </Group>
 
       <MantineReactTable

@@ -25,6 +25,7 @@ export default function SettingsTables() {
   const [columnType, setColumnType] = useState("text");
   const [showInTable, setShowInTable] = useState(true);
   const [refTable, setRefTable] = useState("");
+  const [multiple, setMultiple] = useState(false);
 
   useEffect(() => {
     loadTables();
@@ -58,6 +59,7 @@ export default function SettingsTables() {
       type: columnType,
       showInTable,
       ref: columnType === "relation" ? refTable : null,
+      multiple: columnType === "relation" ? multiple : false,
     });
 
     setColumnName("");
@@ -65,6 +67,7 @@ export default function SettingsTables() {
     setColumnType("text");
     setShowInTable(true);
     setRefTable("");
+    setMultiple(false);
 
     loadSchema(selectedTable);
   };
@@ -139,8 +142,10 @@ export default function SettingsTables() {
                 value={col.type}
                 onChange={(v) => {
                   updateLocalColumn(col.name, "type", v);
+
                   if (v !== "relation") {
                     updateLocalColumn(col.name, "ref", null);
+                    updateLocalColumn(col.name, "multiple", false);
                   }
                 }}
               />
@@ -173,6 +178,34 @@ export default function SettingsTables() {
           }
 
           return col.ref || "-";
+        },
+      },
+
+      {
+        accessorKey: "multiple",
+        header: "Multi",
+        size: 120,
+        Cell: ({ row }) => {
+          const col = row.original;
+
+          if (col.type !== "relation") return "-";
+
+          if (editing === col.name) {
+            return (
+              <Checkbox
+                checked={col.multiple || false}
+                onChange={(e) =>
+                  updateLocalColumn(
+                    col.name,
+                    "multiple",
+                    e.currentTarget.checked,
+                  )
+                }
+              />
+            );
+          }
+
+          return col.multiple ? "Yes" : "No";
         },
       },
 
@@ -213,11 +246,7 @@ export default function SettingsTables() {
             <Group gap="xs" wrap="nowrap">
               {editing === col.name ? (
                 <>
-                  <Button
-                    size="xs"
-                    color="teal"
-                    onClick={() => saveColumn(col)}
-                  >
+                  <Button size="xs" color="teal" onClick={() => saveColumn(col)}>
                     Save
                   </Button>
 
@@ -292,6 +321,7 @@ export default function SettingsTables() {
             <TextInput
               placeholder="Column Name"
               value={columnName}
+              disabled={columnType === "relation"}
               onChange={(e) => setColumnName(e.target.value)}
             />
 
@@ -304,19 +334,41 @@ export default function SettingsTables() {
             <Select
               data={columnTypes}
               value={columnType}
-              onChange={(v) => setColumnType(v || "text")}
+              onChange={(v) => {
+                const type = v || "text";
+                setColumnType(type);
+
+                if (type !== "relation") {
+                  setRefTable("");
+                  setMultiple(false);
+                }
+              }}
             />
 
             {columnType === "relation" && (
-              <Select
-                placeholder="Reference Table"
-                data={tables.map((t) => ({
-                  value: t.tableName,
-                  label: t.tableName,
-                }))}
-                value={refTable}
-                onChange={(v) => setRefTable(v || "")}
-              />
+              <>
+                <Select
+                  placeholder="Reference Table"
+                  data={tables.map((t) => ({
+                    value: t.tableName,
+                    label: t.tableName,
+                  }))}
+                  value={refTable}
+                  onChange={(v) => {
+                    const table = v || "";
+
+                    setRefTable(table);
+                    setColumnName(table);
+                    setColumnLabel(table);
+                  }}
+                />
+
+                <Checkbox
+                  label="Multiple"
+                  checked={multiple}
+                  onChange={(e) => setMultiple(e.currentTarget.checked)}
+                />
+              </>
             )}
 
             <Checkbox

@@ -13,6 +13,7 @@ import {
   NumberInput,
   Checkbox,
   Select,
+  MultiSelect,
 } from "@mantine/core";
 
 import { useParams, useLocation, useNavigate } from "react-router-dom";
@@ -51,26 +52,25 @@ export default function DynamicForm({ table }: any) {
     setForm(res.data);
   };
 
-const loadRelations = async () => {
-  const rels: any = {};
+  const loadRelations = async () => {
+    const rels: any = {};
 
-  for (const col of schema.columns) {
-    if (col.type === "relation" && col.ref) {
+    for (const col of schema.columns) {
+      if (col.type === "relation" && col.ref) {
+        const res = await getTableData(col.ref, {
+          page: 1,
+          limit: 1000,
+        });
 
-      const res = await getTableData(col.ref, {
-        page: 1,
-        limit: 1000,
-      });
-
-      rels[col.name] = res.data.data.map((item: any) => ({
-        value: item._id,
-        label: Object.values(item)[1] || item._id,
-      }));
+        rels[col.name] = res.data.data.map((item: any) => ({
+          value: item._id,
+          label: Object.values(item)[1] || item._id,
+        }));
+      }
     }
-  }
 
-  setRelations(rels);
-};
+    setRelations(rels);
+  };
 
   const handleChange = (name: string, value: any) => {
     setForm({
@@ -98,7 +98,9 @@ const loadRelations = async () => {
   return (
     <div>
       {schema.columns.map((col: any) => {
-        const value = form[col.name] ?? "";
+        const value =
+          form[col.name] ??
+          (col.type === "relation" && col.multiple ? [] : "");
 
         // TEXT
         if (col.type === "text") {
@@ -159,6 +161,24 @@ const loadRelations = async () => {
 
         // RELATION
         if (col.type === "relation") {
+          // MULTI RELATION
+          if (col.multiple) {
+            return (
+              <MultiSelect
+                key={col.name}
+                label={col.label}
+                data={relations[col.name] || []}
+                value={value}
+                disabled={isView}
+                searchable
+                clearable
+                onChange={(v) => handleChange(col.name, v)}
+                mb="sm"
+              />
+            );
+          }
+
+          // SINGLE RELATION
           return (
             <Select
               key={col.name}
@@ -166,6 +186,8 @@ const loadRelations = async () => {
               data={relations[col.name] || []}
               value={value}
               disabled={isView}
+              searchable
+              clearable
               onChange={(v) => handleChange(col.name, v)}
               mb="sm"
             />
