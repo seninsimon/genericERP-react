@@ -81,9 +81,9 @@ export default function DynamicForm({ table }: any) {
           });
           const rows = res.data?.data || [];
           rels[col.name] = rows.map((item: any) => ({
-  value: String(item._id),
-  label: item.name || item.title || item.label || item._id
-}));
+            value: String(item._id),
+            label: item.name || item.title || item.label || item._id,
+          }));
         }
       }
       setRelations(rels);
@@ -166,13 +166,10 @@ export default function DynamicForm({ table }: any) {
     <Stack maw={600} mx="auto" mt="lg">
       {" "}
       {schema.columns.map((col: any) => {
-const value =
-  form[col.name] ??
-  (col.type === "relation"
-    ? col.multiple
-      ? []
-      : null
-    : "");        /* TEXT */ if (col.type === "text") {
+        const value =
+          form[col.name] ??
+          (col.type === "relation" ? (col.multiple ? [] : null) : "");
+        /* TEXT */ if (col.type === "text") {
           return (
             <TextInput
               key={col.name}
@@ -219,41 +216,37 @@ const value =
         }
         /* RELATION */ /* RELATION */
 
-if (col.type === "relation") {
+        if (col.type === "relation") {
+          const options = relations[col.name] || [];
 
-  const options = relations[col.name] || [];
+          if (col.multiple) {
+            return (
+              <MultiSelect
+                key={col.name}
+                label={col.label}
+                data={options}
+                value={Array.isArray(value) ? value.map(String) : []}
+                disabled={isView}
+                searchable
+                clearable
+                onChange={(v) => handleChange(col.name, v)}
+              />
+            );
+          }
 
-  if (col.multiple) {
-
-    return (
-      <MultiSelect
-        key={col.name}
-        label={col.label}
-        data={options}
-        value={Array.isArray(value) ? value.map(String) : []}
-        disabled={isView}
-        searchable
-        clearable
-        onChange={(v) => handleChange(col.name, v)}
-      />
-    );
-
-  }
-
-  return (
-    <Select
-      key={col.name}
-      label={col.label}
-      data={options}
-      value={value || null}
-      disabled={isView}
-      searchable
-      clearable
-      onChange={(v) => handleChange(col.name, v)}
-    />
-  );
-
-}
+          return (
+            <Select
+              key={col.name}
+              label={col.label}
+              data={options}
+              value={value || null}
+              disabled={isView}
+              searchable
+              clearable
+              onChange={(v) => handleChange(col.name, v)}
+            />
+          );
+        }
         /* FILE / IMAGE */ if (
           ["image", "images", "file", "files"].includes(col.type)
         ) {
