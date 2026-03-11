@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "../api";
+import { notifications } from "@mantine/notifications";
 
 export const useTables = () =>
     useQuery({
@@ -29,6 +30,11 @@ export const useCreateTable = () => {
         mutationFn: api.createTable,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["tables"] });
+            notifications.show({
+                title: "Table created",
+                message: "Table created successfully",
+                color: "green",
+            })
         },
     });
 };
@@ -42,6 +48,11 @@ export const useAddColumn = (table: string) => {
         mutationFn: (data: any) => api.addColumn(table, data),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["schema", table] });
+            notifications.show({
+                title: "Column added",
+                message: "Column added successfully",
+                color: "green",
+            });
         },
     });
 };
@@ -54,6 +65,11 @@ export const useUpdateColumn = (table: string, column: string) => {
         mutationFn: (data: any) => api.updateColumn(table, column, data),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["schema", table] });
+            notifications.show({
+                title: "Column updated",
+                message: "Column updated successfully",
+                color: "green",
+            });
         },
     });
 };
@@ -66,6 +82,11 @@ export const useDeleteColumn = (table: string) => {
         mutationFn: (column: string) => api.deleteColumn(table, column),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["schema", table] });
+            notifications.show({
+                title: "Column deleted",
+                message: "Column deleted successfully",
+                color: "green",
+            });
         },
     });
 };
@@ -98,6 +119,11 @@ export const useInsertData = (table: string) => {
         mutationFn: (data: any) => api.insertData(table, data),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["tableData", table] });
+            notifications.show({
+                title: "Data inserted",
+                message: "Data inserted successfully",
+                color: "green",
+            });
         },
     });
 };
@@ -111,6 +137,11 @@ export const useUpdateData = (table: string) => {
             api.updateData(table, id, data),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["tableData", table] });
+            notifications.show({
+                title: "Data updated",
+                message: "Data updated successfully",
+                color: "green",
+            });
         },
     });
 };

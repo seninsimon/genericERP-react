@@ -1,19 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { Button, TextInput, Select, Group, Checkbox } from "@mantine/core";
+import { useMemo, useState, useEffect } from "react";
+import {
+  Button,
+  TextInput,
+  Select,
+  Group,
+  Checkbox,
+  Loader,
+} from "@mantine/core";
 import type { MRT_ColumnDef } from "mantine-react-table";
 import AppTable from "../components/MantineTable";
 
 import {
-  createTable,
-  getTables,
-  getSchema,
-  addColumn,
-  deleteColumn,
-  updateColumn,
-} from "../api/api";
+  useTables,
+  useSchema,
+  useCreateTable,
+  useAddColumn,
+  useDeleteColumn,
+  useUpdateColumn,
+} from "../api/reactQueryHooks/useTables";
 
 export default function SettingsTables() {
-  const [tables, setTables] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState("");
   const [columnsData, setColumnsData] = useState<any[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
@@ -27,33 +33,49 @@ export default function SettingsTables() {
   const [refTable, setRefTable] = useState("");
   const [multiple, setMultiple] = useState(false);
 
+  /* ------------------ QUERIES ------------------ */
+
+  const { data: tables = [], isLoading: tablesLoading } = useTables();
+
+  const { data: schema, isLoading: schemaLoading } = useSchema(selectedTable);
+
+  /* ------------------ MUTATIONS ------------------ */
+
+  const { mutateAsync: createTableMutate, isPending: creatingTable } =
+    useCreateTable();
+
+  const { mutateAsync: addColumnMutate, isPending: addingColumn } =
+    useAddColumn(selectedTable);
+
+  const { mutateAsync: updateColumnMutate } = useUpdateColumn(
+    selectedTable,
+    editing || ""
+  );
+
+  const { mutateAsync: deleteColumnMutate } =
+    useDeleteColumn(selectedTable);
+
+  /* ------------------ EFFECT ------------------ */
+
   useEffect(() => {
-    loadTables();
-  }, []);
+    if (schema?.columns) {
+      setColumnsData(schema.columns);
+    }
+  }, [schema]);
 
-  const loadTables = async () => {
-    const res = await getTables();
-    setTables(res.data);
-  };
-
-  const loadSchema = async (table: string) => {
-    const res = await getSchema(table);
-    setColumnsData(res.data.columns);
-  };
+  /* ------------------ ACTIONS ------------------ */
 
   const createNewTable = async () => {
     if (!tableName.trim()) return;
 
-    await createTable({ tableName });
-
+    await createTableMutate({ tableName });
     setTableName("");
-    loadTables();
   };
 
   const addNewColumn = async () => {
     if (!columnName.trim()) return;
 
-    await addColumn(selectedTable, {
+    await addColumnMutate({
       name: columnName,
       label: columnLabel || columnName,
       type: columnType,
@@ -68,26 +90,24 @@ export default function SettingsTables() {
     setShowInTable(true);
     setRefTable("");
     setMultiple(false);
-
-    loadSchema(selectedTable);
   };
 
   const removeColumn = async (name: string) => {
-    await deleteColumn(selectedTable, name);
-    loadSchema(selectedTable);
+    await deleteColumnMutate(name);
   };
 
   const saveColumn = async (col: any) => {
-    await updateColumn(selectedTable, col.name, col);
+    await updateColumnMutate(col);
     setEditing(null);
-    loadSchema(selectedTable);
   };
 
   const updateLocalColumn = (name: string, key: string, value: any) => {
     setColumnsData((prev) =>
-      prev.map((col) => (col.name === name ? { ...col, [key]: value } : col)),
+      prev.map((col) => (col.name === name ? { ...col, [key]: value } : col))
     );
   };
+
+  /* ------------------ COLUMN TYPES ------------------ */
 
   const columnTypes = [
     { value: "text", label: "Text" },
@@ -96,7 +116,15 @@ export default function SettingsTables() {
     { value: "boolean", label: "Boolean" },
     { value: "relation", label: "Relation" },
     { value: "options", label: "Options" },
+
+    // NEW TYPES
+    { value: "image", label: "Image" },
+    { value: "images", label: "Multiple Images" },
+    { value: "file", label: "File / PDF" },
+    { value: "files", label: "Multiple Files" },
   ];
+
+  /* ------------------ TABLE COLUMNS ------------------ */
 
   const columns = useMemo<MRT_ColumnDef<any>[]>(
     () => [
@@ -105,7 +133,6 @@ export default function SettingsTables() {
         header: "Name",
         size: 180,
       },
-
       {
         accessorKey: "label",
         header: "Label",
@@ -127,7 +154,6 @@ export default function SettingsTables() {
           return col.label;
         },
       },
-
       {
         accessorKey: "type",
         header: "Type",
@@ -155,7 +181,6 @@ export default function SettingsTables() {
           return col.type;
         },
       },
-
       {
         accessorKey: "ref",
         header: "Ref",
@@ -167,7 +192,7 @@ export default function SettingsTables() {
             return (
               <Select
                 placeholder="Reference Table"
-                data={tables.map((t) => ({
+                data={tables.map((t: any) => ({
                   value: t.tableName,
                   label: t.tableName,
                 }))}
@@ -180,7 +205,6 @@ export default function SettingsTables() {
           return col.ref || "-";
         },
       },
-
       {
         accessorKey: "multiple",
         header: "Multi",
@@ -198,7 +222,7 @@ export default function SettingsTables() {
                   updateLocalColumn(
                     col.name,
                     "multiple",
-                    e.currentTarget.checked,
+                    e.currentTarget.checked
                   )
                 }
               />
@@ -208,7 +232,6 @@ export default function SettingsTables() {
           return col.multiple ? "Yes" : "No";
         },
       },
-
       {
         accessorKey: "showInTable",
         header: "Show",
@@ -224,7 +247,7 @@ export default function SettingsTables() {
                   updateLocalColumn(
                     col.name,
                     "showInTable",
-                    e.currentTarget.checked,
+                    e.currentTarget.checked
                   )
                 }
               />
@@ -234,7 +257,6 @@ export default function SettingsTables() {
           return col.showInTable ? "Yes" : "No";
         },
       },
-
       {
         id: "actions",
         header: "Actions",
@@ -283,8 +305,12 @@ export default function SettingsTables() {
         },
       },
     ],
-    [columnsData, editing, tables],
+    [columnsData, editing, tables]
   );
+
+  /* ------------------ UI ------------------ */
+
+  if (tablesLoading) return <Loader />;
 
   return (
     <div className="w-full px-8 py-10">
@@ -297,25 +323,28 @@ export default function SettingsTables() {
           onChange={(e) => setTableName(e.target.value)}
         />
 
-        <Button onClick={createNewTable}>Create</Button>
+        <Button loading={creatingTable} onClick={createNewTable}>
+          Create
+        </Button>
       </Group>
 
       <Select
         placeholder="Select table"
-        data={tables.map((t) => ({
+        data={tables.map((t: any) => ({
           value: t.tableName,
           label: t.tableName,
         }))}
         value={selectedTable}
-        onChange={(v) => {
-          setSelectedTable(v || "");
-          if (v) loadSchema(v);
-        }}
+        onChange={(v) => setSelectedTable(v || "")}
       />
 
       {selectedTable && (
         <>
-          <AppTable columns={columns} data={columnsData} />
+          {schemaLoading ? (
+            <Loader mt="lg" />
+          ) : (
+            <AppTable columns={columns} data={columnsData} />
+          )}
 
           <Group mt="lg">
             <TextInput
@@ -349,7 +378,7 @@ export default function SettingsTables() {
               <>
                 <Select
                   placeholder="Reference Table"
-                  data={tables.map((t) => ({
+                  data={tables.map((t: any) => ({
                     value: t.tableName,
                     label: t.tableName,
                   }))}
@@ -377,7 +406,9 @@ export default function SettingsTables() {
               onChange={(e) => setShowInTable(e.currentTarget.checked)}
             />
 
-            <Button onClick={addNewColumn}>Add Column</Button>
+            <Button loading={addingColumn} onClick={addNewColumn}>
+              Add Column
+            </Button>
           </Group>
         </>
       )}

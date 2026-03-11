@@ -14,15 +14,11 @@ type RowData = {
 export default function TableListPage() {
   const { table } = useParams<{ table: string }>();
   const navigate = useNavigate();
-
   const [data, setData] = useState<RowData[]>([]);
   const [rowCount, setRowCount] = useState(0);
-
   const [loading, setLoading] = useState(false);
-
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-
   const [sorting, setSorting] = useState<any[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
@@ -134,6 +130,11 @@ export default function TableListPage() {
             borderBottom: "1px solid #D1D5DB",
             padding: "4px 8px",
             minHeight: "50px",
+          },
+        }}
+        mantineTableContainerProps={{
+          style: {
+            minHeight: "450px",
           },
         }}
         data={data}
