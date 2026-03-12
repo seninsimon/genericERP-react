@@ -42,9 +42,6 @@ export default function TableListPage() {
   const handleDelete = (id: string) => {
     if (!table) return;
 
-    const confirmDelete = window.confirm("Delete this record?");
-    if (!confirmDelete) return;
-
     deleteMutation.mutate(id);
   };
 

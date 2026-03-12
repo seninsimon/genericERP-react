@@ -143,9 +143,9 @@ export default function DynamicForm({ table }: any) {
           }
 
           if (col.type === "image" || col.type === "file") {
-            payload[field] = finalFiles[0] || "";
+            payload[field] = finalFiles.length ? finalFiles[0] : null;
           } else {
-            payload[field] = finalFiles;
+            payload[field] = finalFiles.length ? finalFiles : [];
           }
         }
       }

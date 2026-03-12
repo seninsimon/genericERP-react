@@ -85,7 +85,9 @@ export default function CustomTable({
       }}
       mantineTableContainerProps={{
         style: {
-          minHeight: "450px",
+          height: "450px",
+          maxHeight: "450px",
+          overflowY: "auto",
         },
       }}
       manualPagination
