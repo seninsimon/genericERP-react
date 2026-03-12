@@ -13,15 +13,13 @@ export default function TopNavbar({ opened, toggle }: any) {
       }}
     >
       <Group justify="space-between" w="100%">
-
         <Group>
           <Burger opened={opened} onClick={toggle} size="sm" />
 
           <Text fw={700} size="lg">
-            Pegasus-ERP
+            Zenin-ERP
           </Text>
         </Group>
-
       </Group>
     </Box>
   );
