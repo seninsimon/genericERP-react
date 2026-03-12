@@ -14,6 +14,7 @@ import { uploadFiles } from "../../api/api";
 import api from "../../api/api";
 
 import FieldRenderer from "./FieldRenderer";
+import { confirmAction } from "../../utils/confirmModal";
 
 const FILE_BASE_URL = "http://localhost:5000";
 
@@ -203,31 +204,36 @@ export default function DynamicForm({ table }: any) {
       </SimpleGrid>
 
       <Group
-  style={{
-    position: "fixed",
-    bottom: 20,
-    right: 30,
-    zIndex: 1000,
-  }}
->
-  <Button
-    size="sm"
-    variant="light"
-    onClick={() => navigate(`/table/${table}`)}
-  >
-    Back
-  </Button>
+        style={{
+          position: "fixed",
+          bottom: 20,
+          right: 30,
+          zIndex: 1000,
+        }}
+      >
+        <Button
+          size="sm"
+          variant="light"
+          onClick={() => navigate(`/table/${table}`)}
+        >
+          Back
+        </Button>
 
-  {!isView && (
-    <Button
-      size="sm"
-      loading={insertMutation.isPending || updateMutation.isPending}
-      onClick={submit}
-    >
-      {isEdit ? "Update" : "Save"}
-    </Button>
-  )}
-</Group>
+        {!isView && (
+          <Button
+            size="sm"
+            loading={insertMutation.isPending || updateMutation.isPending}
+            onClick={() =>
+              confirmAction(
+                `Are you sure you want to ${isEdit ? "update" : "save"} this row?`,
+                submit,
+              )
+            }
+          >
+            {isEdit ? "Update" : "Save"}
+          </Button>
+        )}
+      </Group>
     </Stack>
   );
 }

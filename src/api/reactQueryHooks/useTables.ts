@@ -154,6 +154,11 @@ export const useDeleteData = (table: string) => {
         mutationFn: (id: string) => api.deleteData(table, id),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["tableData", table] });
+            notifications.show({
+                title: "Data deleted",
+                message: "Data deleted successfully",
+                color: "green",
+            });
         },
     });
 };

@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Notifications } from "@mantine/notifications";
+import { ModalsProvider } from "@mantine/modals";
 
 import ErrorBoundary from "./components/ErrorBoundary";
 import MainLayout from "./layout/MainLayout";
 
-import TableListPage from "./pages/TableListPage";
+import TableListPage from "./pages/Table/TableListPage";
 import TableFormPage from "./pages/TableFormPage";
 import SettingsTables from "./pages/SettingsTables";
 
@@ -12,31 +13,36 @@ function App() {
   return (
     <BrowserRouter>
 
-      {/* GLOBAL NOTIFICATIONS */}
-      <Notifications position="top-right" />
+      {/* Mantine Confirm Modals */}
+      <ModalsProvider>
 
-      {/* GLOBAL ERROR BOUNDARY */}
-      <ErrorBoundary>
+        {/* GLOBAL NOTIFICATIONS */}
+        <Notifications position="top-right" />
 
-        <Routes>
+        {/* GLOBAL ERROR BOUNDARY */}
+        <ErrorBoundary>
 
-          <Route element={<MainLayout />}>
+          <Routes>
 
-            <Route path="/settings" element={<SettingsTables />} />
+            <Route element={<MainLayout />}>
 
-            <Route path="/table/:table" element={<TableListPage />} />
+              <Route path="/settings" element={<SettingsTables />} />
 
-            <Route path="/table/:table/new" element={<TableFormPage />} />
+              <Route path="/table/:table" element={<TableListPage />} />
 
-            <Route path="/table/:table/view/:id" element={<TableFormPage />} />
+              <Route path="/table/:table/new" element={<TableFormPage />} />
 
-            <Route path="/table/:table/edit/:id" element={<TableFormPage />} />
+              <Route path="/table/:table/view/:id" element={<TableFormPage />} />
 
-          </Route>
+              <Route path="/table/:table/edit/:id" element={<TableFormPage />} />
 
-        </Routes>
+            </Route>
 
-      </ErrorBoundary>
+          </Routes>
+
+        </ErrorBoundary>
+
+      </ModalsProvider>
 
     </BrowserRouter>
   );
