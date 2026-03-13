@@ -521,7 +521,7 @@ export default function SettingsTables() {
                         label="Column Name"
                         placeholder="e.g., first_name"
                         value={columnName}
-                        onChange={(e) => setColumnName(e.target.value)}
+                        onChange={(e) => setColumnName(e.target.value.trim())}
                         disabled={columnType === "relation"}
                         size="xs"
                       />

@@ -6,6 +6,7 @@ import { useState } from "react";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "mantine-react-table/styles.css";
+import "@mantine/dates/styles.css";
 import "./index.css";
 
 import App from "./App.tsx";
@@ -21,7 +22,7 @@ const queryClient = new QueryClient({
 });
 
 function Root() {
-  const [themeName, setThemeName] = useState("gray");
+  const [themeName, setThemeName] = useState("blue");
 
   return (
     <MantineProvider

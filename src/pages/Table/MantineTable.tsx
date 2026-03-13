@@ -50,7 +50,7 @@ export default function CustomTable({
     <MantineReactTable
       columns={columns}
       data={data}
-      enableColumnResizing
+      // enableColumnResizing
 
       // mantineTableHeadCellProps={{
       //   style: {
@@ -65,6 +65,11 @@ export default function CustomTable({
         style: {
           padding: "8px 12px",
           fontSize: "14px",
+          maxHeight: "40px",
+          maxWidth: "100px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
         },
       }}
       
