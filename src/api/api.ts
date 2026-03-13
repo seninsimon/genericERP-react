@@ -1,7 +1,14 @@
 import axios from "axios";
 
+// const api = axios.create({
+//   baseURL: "https://monospermous-watchfully-luetta.ngrok-free.dev/api",
+//   headers: {
+//     "ngrok-skip-browser-warning": "true"
+//   }
+// });
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 export const getTables = () => api.get("/schema");
@@ -48,6 +55,22 @@ export const updateData = (table: string, id: string, data: any) =>
 export const deleteData = (table: string, id: string) =>
   api.delete(`/table/${table}/${id}`);
 
+
+export const uploadFiles = (files: File[]) => {
+  const formData = new FormData();
+
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+
+  return api.post("/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getHealth = () => api.get("/system-health");
 
 
 export default api;

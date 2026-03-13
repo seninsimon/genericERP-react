@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import DynamicForm from "../components/DynamicForm";
+import DynamicForm from "../components/DynamicForm/DynamicForm";
 
 export default function TableFormPage() {
 

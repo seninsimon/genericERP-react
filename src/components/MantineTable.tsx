@@ -16,24 +16,23 @@ export default function MantineTable<T extends Record<string, any>>({
       columns={columns}
       mantineTableHeadCellProps={{
         style: {
-          background: "lightblue",
-          color: "black",
           fontWeight: 600,
-          fontSize: "15px",
-          padding: "8px",
+          fontSize: "14px",
+          padding: "10px 12px",
+          borderBottom: "1px solid #E5E7EB",
         },
       }}
       mantineTableBodyCellProps={{
         style: {
-          padding: "4px 8px",
-          fontSize: "15px",
-          height: "28px",
+          padding: "8px 12px",
+          fontSize: "14px",
+          borderBottom: "1px solid #F3F4F6",
         },
       }}
       mantineTableProps={{
         striped: true,
         highlightOnHover: true,
-        withColumnBorders: true,
+        withColumnBorders: false,
       }}
       data={data}
       enableColumnPinning
