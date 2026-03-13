@@ -22,6 +22,8 @@ function App({ themeName, setThemeName }: any) {
           <Routes>
             <Route element={<MainLayout themeName={themeName}
                   setThemeName={setThemeName}/>}>
+              <Route path="/" element={<SettingsTables />} />
+
               <Route path="/settings" element={<SettingsTables />} />
 
               <Route path="/table/:table" element={<TableListPage />} />
