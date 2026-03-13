@@ -5,8 +5,7 @@ import Sidebar from "../components/Sidebar";
 import TopNavbar from "../components/TopNavbar";
 import { Outlet } from "react-router-dom";
 
-export default function MainLayout() {
-
+export default function MainLayout({ themeName, setThemeName }: any) {
   const [opened, { toggle }] = useDisclosure(true);
 
   return (
@@ -23,7 +22,12 @@ export default function MainLayout() {
       }}
     >
       <AppShell.Header>
-        <TopNavbar opened={opened} toggle={toggle} />
+        <TopNavbar
+          opened={opened}
+          toggle={toggle}
+          themeName={themeName}
+          setThemeName={setThemeName}
+        />
       </AppShell.Header>
 
       <AppShell.Navbar>

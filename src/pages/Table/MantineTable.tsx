@@ -51,44 +51,23 @@ export default function CustomTable({
       data={data}
       mantineTableHeadCellProps={{
         style: {
-          background: "lightblue",
-          color: "black",
           fontWeight: 600,
-          fontSize: "15px",
-          padding: "8px",
+          fontSize: "14px",
+          padding: "10px 12px",
+          borderBottom: "1px solid #E5E7EB",
         },
       }}
       mantineTableBodyCellProps={{
         style: {
-          padding: "4px 8px",
-          fontSize: "15px",
-          maxHeight: "28px",
-          minHeight: "28px",
-          maxWidth: "200px",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          padding: "8px 12px",
+          fontSize: "14px",
+          borderBottom: "1px solid #F3F4F6",
         },
       }}
       mantineTableProps={{
         striped: true,
         highlightOnHover: true,
-        withColumnBorders: true,
-      }}
-      mantineTopToolbarProps={{
-        style: {
-          background: "lightgray",
-          borderBottom: "1px solid #D1D5DB",
-          padding: "4px 8px",
-          minHeight: "50px",
-        },
-      }}
-      mantineTableContainerProps={{
-        style: {
-          height: "450px",
-          maxHeight: "450px",
-          overflowY: "auto",
-        },
+        withColumnBorders: false,
       }}
       manualPagination
       manualSorting

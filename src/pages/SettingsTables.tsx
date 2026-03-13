@@ -450,7 +450,7 @@ export default function SettingsTables() {
                 label="Table Name"
                 placeholder="e.g., products, customers, orders"
                 value={tableName}
-                onChange={(e) => setTableName(e.target.value)}
+                onChange={(e) => setTableName(e.target.value.trim())}
                 leftSection={<IconTable size={16} />}
               />
             </Grid.Col>
@@ -492,7 +492,6 @@ export default function SettingsTables() {
             setSelectedTable(v || "");
             setActiveTab("edit");
           }}
-          size="md"
           mb="lg"
           leftSection={<IconDatabase size={16} />}
           searchable

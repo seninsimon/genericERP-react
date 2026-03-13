@@ -16,7 +16,7 @@ import api from "../../api/api";
 import FieldRenderer from "./FieldRenderer";
 import { confirmAction } from "../../utils/confirmModal";
 
-const FILE_BASE_URL = "http://localhost:5000";
+const FILE_BASE_URL = import.meta.env.VITE_FILE_BASE_URL;
 
 export default function DynamicForm({ table }: any) {
   const { id } = useParams();
