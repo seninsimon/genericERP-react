@@ -70,5 +70,7 @@ export const uploadFiles = (files: File[]) => {
   });
 };
 
+export const getHealth = () => api.get("/system-health");
+
 
 export default api;

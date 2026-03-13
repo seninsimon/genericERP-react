@@ -1,7 +1,8 @@
-import { Button, Group } from "@mantine/core";
+import { ActionIcon, Group, Tooltip } from "@mantine/core";
 import { MantineReactTable } from "mantine-react-table";
 import type { MRT_ColumnDef } from "mantine-react-table";
 import { confirmAction } from "../../utils/confirmModal";
+import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
 
 type RowData = {
   _id: string;
@@ -49,26 +50,39 @@ export default function CustomTable({
     <MantineReactTable
       columns={columns}
       data={data}
-      mantineTableHeadCellProps={{
-        style: {
-          fontWeight: 600,
-          fontSize: "14px",
-          padding: "10px 12px",
-          borderBottom: "1px solid #E5E7EB",
-        },
-      }}
+      enableColumnResizing
+
+      // mantineTableHeadCellProps={{
+      //   style: {
+      //     fontWeight: 600,
+      //     fontSize: "14px",
+      //     padding: "10px 12px",
+      //   },
+      // }}
+      
+      
       mantineTableBodyCellProps={{
         style: {
           padding: "8px 12px",
           fontSize: "14px",
-          borderBottom: "1px solid #F3F4F6",
         },
       }}
+      
       mantineTableProps={{
         striped: true,
         highlightOnHover: true,
         withColumnBorders: false,
+      }}  
+      
+    
+      mantineTableContainerProps={{
+        style: {
+          height: "450px",
+          maxHeight: "450px",
+          overflowY: "auto",
+        },
       }}
+      
       manualPagination
       manualSorting
       manualFiltering
@@ -82,6 +96,7 @@ export default function CustomTable({
           right: ["mrt-row-actions"],
         },
       }}
+      
       onPaginationChange={(updater) => {
         const newState =
           typeof updater === "function"
@@ -91,49 +106,65 @@ export default function CustomTable({
         setPageIndex(newState.pageIndex);
         setPageSize(newState.pageSize);
       }}
+      
       onGlobalFilterChange={setGlobalFilter}
       enableRowActions
       positionActionsColumn="last"
       enableColumnOrdering
       enableColumnPinning
+      
       displayColumnDefOptions={{
         "mrt-row-actions": {
-          size: 220,
+          header: "Actions",
+          size: 160,
+          minSize: 160,
+          maxSize: 160,
+          enableResizing: false,
+          mantineTableHeadCellProps: { align: "center" },
+          mantineTableBodyCellProps: { align: "center" },
         },
       }}
       renderRowActions={({ row }) => (
-        <Group gap={4} wrap="nowrap">
-          <Button
-            size="xs"
-            variant="light"
-            px={8}
-            onClick={() => onView(row.original._id)}
-          >
-            View
-          </Button>
+        <Group gap={15} wrap="nowrap">
+          <Tooltip label="View">
+            <ActionIcon
+              size="sm"
+              color="blue"
+              radius="sm"
+              variant="subtle"
+              onClick={() => onView(row.original._id)}
+            >
+              <IconEye size={16} />
+            </ActionIcon>
+          </Tooltip>
 
-          <Button
-            size="xs"
-            variant="light"
-            px={8}
-            onClick={() => onEdit(row.original._id)}
-          >
-            Edit
-          </Button>
+          <Tooltip label="Edit">
+            <ActionIcon
+              size="sm"
+              color="yellow"
+              radius="sm"
+              variant="subtle"
+              onClick={() => onEdit(row.original._id)}
+            >
+              <IconEdit size={16} />
+            </ActionIcon>
+          </Tooltip>
 
-          <Button
-            size="xs"
-            color="red"
-            variant="light"
-            px={8}
-            onClick={() =>
-              confirmAction("Are you sure you want to delete this row?", () =>
-                onDelete(row.original._id),
-              )
-            }
-          >
-            Delete
-          </Button>
+          <Tooltip label="Delete">
+            <ActionIcon
+              size="sm"
+              color="red"
+              radius="sm"
+              variant="subtle"
+              onClick={() =>
+                confirmAction("Are you sure you want to delete this row?", () =>
+                  onDelete(row.original._id),
+                )
+              }
+            >
+              <IconTrash size={16} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
       )}
     />

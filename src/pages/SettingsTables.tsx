@@ -514,7 +514,7 @@ export default function SettingsTables() {
                   variant="light"
                 ></Alert>
 
-                <Paper withBorder p="md" radius="md" bg="gray.0">
+                <Paper withBorder p="md" radius="sm" >
                   <Grid>
                     <Grid.Col span={3}>
                       <TextInput

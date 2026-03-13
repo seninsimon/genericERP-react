@@ -20,9 +20,15 @@ export default function Sidebar() {
   }
 
   return (
-    <ScrollArea h="100vh" type="scroll">
-      <Stack p="md" gap="xs">
-
+    <ScrollArea type="scroll">
+      <Stack
+        p="sm"
+        gap="xs"
+        style={{
+          borderRight: "2px solid #E5E7EB",
+        }}
+        h="100vh"
+      >
         {/* SETTINGS */}
         <Button
           variant={isSettingsActive ? "filled" : "subtle"}
