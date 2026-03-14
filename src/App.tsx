@@ -7,7 +7,7 @@ import MainLayout from "./layout/MainLayout";
 
 import TableListPage from "./pages/Table/TableListPage";
 import TableFormPage from "./pages/TableFormPage";
-import SettingsTables from "./pages/SettingsTables";
+import SettingsTables from "./pages/settings/SettingsTables";
 
 function App({ themeName, setThemeName }: any) {
   return (
