@@ -1,7 +1,7 @@
 import { ActionIcon, Group, Tooltip } from "@mantine/core";
 import { MantineReactTable } from "mantine-react-table";
-import type { MRT_ColumnDef } from "mantine-react-table";
 import { confirmAction } from "../../utils/confirmModal";
+import type { MRT_ColumnDef, MRT_SortingState, MRT_Updater } from "mantine-react-table";
 import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
 
 type RowData = {
@@ -22,12 +22,13 @@ type Props = {
 
   setPageIndex: (v: number) => void;
   setPageSize: (v: number) => void;
-  setSorting: (v: any[]) => void;
+  setSorting: (updater: MRT_Updater<MRT_SortingState>) => void;
   setGlobalFilter: (v: string) => void;
 
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  
 };
 
 export default function CustomTable({
@@ -41,6 +42,7 @@ export default function CustomTable({
   globalFilter,
   setPageIndex,
   setPageSize,
+  setSorting,   // ✅ add this
   setGlobalFilter,
   onView,
   onEdit,
@@ -101,6 +103,8 @@ export default function CustomTable({
           right: ["mrt-row-actions"],
         },
       }}
+
+       onSortingChange={setSorting}
       
       onPaginationChange={(updater) => {
         const newState =
