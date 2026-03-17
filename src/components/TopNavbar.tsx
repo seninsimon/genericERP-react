@@ -99,13 +99,12 @@ export default function TopNavbar({
                 <Select
                   label="Theme"
                   value={themeName}
-                  onChange={setThemeName}
+                  onChange={(value) => setThemeName(value ?? "blue")}
                   data={[
                     { value: "blue", label: "Blue Theme" },
                     { value: "green", label: "Green Theme" },
                     { value: "gray", label: "Gray Theme" },
                     { value: "violet", label: "Violet Theme" },
-                    { value: "", label: "Default" },
                   ]}
                 />
 
