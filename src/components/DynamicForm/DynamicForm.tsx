@@ -219,7 +219,7 @@ export default function DynamicForm({ table }: any) {
       </Paper>
 
       {/* FORM */}
-      <Stack w="100%" p="md" gap="md">
+      <Stack w="100%" pt="md" gap="md">
         <Paper withBorder radius="md" p="md">
           <Grid gutter="md">
             {schema.columns.map((col: any) => (
