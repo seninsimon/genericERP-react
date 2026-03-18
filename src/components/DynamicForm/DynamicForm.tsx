@@ -265,7 +265,7 @@ export default function DynamicForm({ table }: any) {
 
       {/* FOOTER */}
       <Paper
-        withBorder
+        
         p="sm"
         style={{
           position: "fixed",
@@ -273,6 +273,7 @@ export default function DynamicForm({ table }: any) {
           left: 0,
           right: 0,
           backdropFilter: "blur(6px)",
+          borderTop: "1px solid #E5E7EB",
         }}
       >
         <Flex justify="flex-end" gap="sm" mx="auto">
