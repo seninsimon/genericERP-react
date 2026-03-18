@@ -4,6 +4,7 @@ import BooleanField from "./fields/BooleanField";
 import DateField from "./fields/DateField";
 import RelationField from "./fields/RelationField";
 import FileField from "./fields/FileField";
+import RichTextField from "./fields/RichTextBoxFiled";
 
 export default function FieldRenderer({ column, ...props }: any) {
   switch (column.type) {
@@ -27,6 +28,9 @@ export default function FieldRenderer({ column, ...props }: any) {
     case "file":
     case "files":
       return <FileField column={column} {...props} />;
+
+    case "richtext":
+      return <RichTextField column={column} {...props} />;
 
     default:
       return null;
