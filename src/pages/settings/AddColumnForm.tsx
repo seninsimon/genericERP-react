@@ -30,6 +30,7 @@ const columnTypes = [
   { value: "images", label: "Multiple Images", group: "Media Types" },
   { value: "file", label: "Single File", group: "Media Types" },
   { value: "files", label: "Multiple Files", group: "Media Types" },
+  { value: "richtext", label: "Rich Text", group: "Advanced Types" },
 ];
 
 const groupedColumnTypes = columnTypes.reduce((acc: any, type) => {

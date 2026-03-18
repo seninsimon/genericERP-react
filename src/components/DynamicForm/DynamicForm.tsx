@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
-import { Stack, Loader, Group, Button, SimpleGrid } from "@mantine/core";
+import {
+  Stack,
+  Loader,
+  Group,
+  Button,
+  Paper,
+  Title,
+  Flex,
+  Text,
+  ActionIcon,
+  Grid,
+  Box,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { IconArrowLeft, IconDeviceFloppy } from "@tabler/icons-react";
 
 import {
   useSchema,
@@ -12,7 +25,6 @@ import {
 
 import { uploadFiles } from "../../api/api";
 import api from "../../api/api";
-
 import FieldRenderer from "./FieldRenderer";
 import { confirmAction } from "../../utils/confirmModal";
 
@@ -31,12 +43,13 @@ export default function DynamicForm({ table }: any) {
   const [pendingFiles, setPendingFiles] = useState<any>({});
   const [existingFiles, setExistingFiles] = useState<any>({});
 
-  const { data: schema, isLoading: schemaLoading } = useSchema(table);
+  const { data: schema, isLoading } = useSchema(table);
   const { data: singleData } = useSingleData(table, id || "");
 
   const insertMutation = useInsertData(table);
   const updateMutation = useUpdateData(table);
 
+  /* ---------------- INIT DATA ---------------- */
   useEffect(() => {
     if (!singleData || !schema) return;
 
@@ -47,7 +60,7 @@ export default function DynamicForm({ table }: any) {
       if (col.type === "relation") {
         if (col.multiple && Array.isArray(normalized[col.name])) {
           normalized[col.name] = normalized[col.name].map((v: any) =>
-            typeof v === "object" ? v._id : v,
+            typeof v === "object" ? v._id : v
           );
         }
 
@@ -63,8 +76,8 @@ export default function DynamicForm({ table }: any) {
         existing[col.name] = Array.isArray(normalized[col.name])
           ? normalized[col.name]
           : normalized[col.name]
-            ? [normalized[col.name]]
-            : [];
+          ? [normalized[col.name]]
+          : [];
       }
     });
 
@@ -72,6 +85,7 @@ export default function DynamicForm({ table }: any) {
     setExistingFiles(existing);
   }, [singleData, schema]);
 
+  /* ---------------- RELATIONS ---------------- */
   useEffect(() => {
     if (!schema) return;
 
@@ -84,11 +98,9 @@ export default function DynamicForm({ table }: any) {
             params: { page: 1, limit: 1000 },
           });
 
-          const rows = res.data?.data || [];
-
-          rels[col.name] = rows.map((item: any) => ({
+          rels[col.name] = res.data?.data.map((item: any) => ({
             value: String(item._id),
-            label: item.name || item.title || item.label || item._id,
+            label: item.name || item.title || item._id,
           }));
         }
       }
@@ -99,6 +111,7 @@ export default function DynamicForm({ table }: any) {
     loadRelations();
   }, [schema]);
 
+  /* ---------------- HANDLERS ---------------- */
   const handleChange = (name: string, value: any) => {
     setForm((prev: any) => ({ ...prev, [name]: value }));
   };
@@ -126,6 +139,7 @@ export default function DynamicForm({ table }: any) {
     }));
   };
 
+  /* ---------------- SUBMIT ---------------- */
   const submit = async () => {
     try {
       let payload = { ...form };
@@ -142,11 +156,10 @@ export default function DynamicForm({ table }: any) {
             finalFiles = [...finalFiles, ...urls];
           }
 
-          if (col.type === "image" || col.type === "file") {
-            payload[field] = finalFiles.length ? finalFiles[0] : null;
-          } else {
-            payload[field] = finalFiles.length ? finalFiles : [];
-          }
+          payload[field] =
+            col.type === "image" || col.type === "file"
+              ? finalFiles[0] || null
+              : finalFiles;
         }
       }
 
@@ -155,6 +168,12 @@ export default function DynamicForm({ table }: any) {
       } else {
         await insertMutation.mutateAsync(payload);
       }
+
+      notifications.show({
+        title: "Success",
+        message: "Saved successfully",
+        color: "green",
+      });
 
       navigate(`/table/${table}`);
     } catch {
@@ -166,74 +185,114 @@ export default function DynamicForm({ table }: any) {
     }
   };
 
-  if (schemaLoading) {
+  if (isLoading) {
     return (
-      <Group justify="center" mt="xl">
+      <Flex justify="center" align="center" h="100vh">
         <Loader />
-      </Group>
+      </Flex>
     );
   }
 
   if (!schema) return null;
 
   return (
-    <Stack maw={1200} mx="auto" mt="lg">
-      <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
-        {schema.columns.map((col: any) => {
-          const value =
-            form[col.name] ??
-            (col.type === "relation" ? (col.multiple ? [] : null) : "");
+    <Box mih="100vh" pb={80}>
+      {/* HEADER */}
+      <Paper withBorder p="sm">
+        <Group>
+          <ActionIcon
+            variant="subtle"
+            onClick={() => navigate(`/table/${table}`)}
+          >
+            <IconArrowLeft size={16} />
+          </ActionIcon>
 
-          return (
-            <FieldRenderer
-              key={col.name}
-              column={col}
-              value={value}
-              relations={relations}
-              isView={isView}
-              FILE_BASE_URL={FILE_BASE_URL}
-              onChange={handleChange}
-              onFileSelect={handleFileSelect}
-              existingFiles={existingFiles}
-              pendingFiles={pendingFiles}
-              removeExisting={removeExisting}
-              removePending={removePending}
-            />
-          );
-        })}
-      </SimpleGrid>
+          <Box>
+            <Title order={4}>
+              {isEdit ? "Edit" : isView ? "View" : "New"} {table}
+            </Title>
+            <Text size="xs" c="dimmed">
+              Manage record details
+            </Text>
+          </Box>
+        </Group>
+      </Paper>
 
-      <Group
+      {/* FORM */}
+      <Stack w="100%" p="md" gap="md">
+        <Paper withBorder radius="md" p="md">
+          <Grid gutter="md">
+            {schema.columns.map((col: any) => (
+              <Grid.Col
+                key={col.name}
+                span={{
+                  base: 12,
+                  sm:
+                    col.type === "textarea" || col.type === "richtext"
+                      ? 12
+                      : 6,
+                  md:
+                    col.type === "textarea" || col.type === "richtext"
+                      ? 12
+                      : 4,
+                }}
+              >
+                <FieldRenderer
+                  column={col}
+                  value={
+                    form[col.name] ??
+                    (col.type === "relation"
+                      ? col.multiple
+                        ? []
+                        : null
+                      : "")
+                  }
+                  relations={relations}
+                  isView={isView}
+                  FILE_BASE_URL={FILE_BASE_URL}
+                  onChange={handleChange}
+                  onFileSelect={handleFileSelect}
+                  existingFiles={existingFiles}
+                  pendingFiles={pendingFiles}
+                  removeExisting={removeExisting}
+                  removePending={removePending}
+                />
+              </Grid.Col>
+            ))}
+          </Grid>
+        </Paper>
+      </Stack>
+
+      {/* FOOTER */}
+      <Paper
+        withBorder
+        p="sm"
         style={{
           position: "fixed",
-          bottom: 20,
-          right: 30,
-          zIndex: 1000,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backdropFilter: "blur(6px)",
         }}
       >
-        <Button
-          size="sm"
-          variant="light"
-          onClick={() => navigate(`/table/${table}`)}
-        >
-          Back
-        </Button>
-
-        {!isView && (
-          <Button
-            size="sm"
-            loading={insertMutation.isPending || updateMutation.isPending}
-            onClick={() =>
-              confirmAction(
-                `Are you sure you want to ${isEdit ? "update" : "save"} this row?`,
-                submit,
-              )
-            }
-          >
-            {isEdit ? "Update" : "Save"}
+        <Flex justify="flex-end" gap="sm" mx="auto">
+          <Button variant="subtle"  onClick={() => navigate(`/table/${table}`)}>
+            Cancel
           </Button>
-        )}
-      </Group>
-    </Stack>
+
+          {!isView && (
+            <Button
+              loading={
+                insertMutation.isPending || updateMutation.isPending
+              }
+              onClick={() => confirmAction("Save changes?", submit)}
+              leftSection={<IconDeviceFloppy size={14} />}
+            >
+              {isEdit ? "Update" : "Save"}
+            </Button>
+          )}
+        </Flex>
+      </Paper>
+    </Box>
   );
 }

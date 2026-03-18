@@ -279,7 +279,6 @@ export default function FileField({
           withBorder
           style={{
             border: '2px dashed var(--mantine-color-gray-3)',
-            backgroundColor: 'var(--mantine-color-gray-0)',
             textAlign: 'center',
           }}
         >
