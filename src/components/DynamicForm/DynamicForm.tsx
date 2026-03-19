@@ -198,7 +198,9 @@ export default function DynamicForm({ table }: any) {
   return (
     <Box mih="100vh" pb={80}>
       {/* HEADER */}
-      <Paper withBorder p="sm">
+      <Paper 
+      
+      >
         <Group>
           <ActionIcon
             variant="subtle"

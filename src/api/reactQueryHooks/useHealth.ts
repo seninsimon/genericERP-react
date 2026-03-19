@@ -10,6 +10,6 @@ export const useSystemHealth = () => {
       console.log(data);
       return data;
     },
-    refetchInterval: 5000,
+    refetchInterval: 50000,
   });
 };

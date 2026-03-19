@@ -5,6 +5,7 @@ import DateField from "./fields/DateField";
 import RelationField from "./fields/RelationField";
 import FileField from "./fields/FileField";
 import RichTextField from "./fields/RichTextBoxFiled";
+import TextAreaField from "./fields/TextAreaField";
 
 export default function FieldRenderer({ column, ...props }: any) {
   switch (column.type) {
@@ -31,6 +32,9 @@ export default function FieldRenderer({ column, ...props }: any) {
 
     case "richtext":
       return <RichTextField column={column} {...props} />;
+
+    case "textarea":
+      return <TextAreaField column={column} {...props} />;
 
     default:
       return null;

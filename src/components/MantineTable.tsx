@@ -36,7 +36,7 @@ export default function MantineTable<T extends Record<string, any>>({
       }}
       data={data}
       enableColumnPinning
-      enableColumnResizing
+      
       layoutMode="grid"
       initialState={{
         density: "xs",
