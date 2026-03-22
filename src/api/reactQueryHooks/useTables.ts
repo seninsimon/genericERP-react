@@ -173,3 +173,27 @@ export const useSingleData = (table: string, id: string) =>
         },
         enabled: !!table && !!id,
     });
+
+
+export const useUpdateTableSettings = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ table, data }: { table: string; data: any }) =>
+            api.updateTableSettings(table, data),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["tables"] });
+            notifications.show({
+                title: "Table settings updated",
+                message: "Table settings updated successfully",
+                color: "green",
+            });
+        },
+        onError: () => {
+            notifications.show({
+                title: "Error updating table settings",
+                message: "Error updating table settings",
+                color: "red",
+            });
+        }
+    });
+};

@@ -70,6 +70,9 @@ export const uploadFiles = (files: File[]) => {
   });
 };
 
+export const updateTableSettings = (table: string, data: any) =>
+  api.put(`/schema/${table}`, data);
+
 export const getHealth = () => api.get("/system-health");
 
 

@@ -11,6 +11,7 @@ import {
   Alert,
   Tabs,
   Grid,
+  Switch,
 } from "@mantine/core";
 import {
   IconTable,
@@ -28,6 +29,7 @@ import {
   useAddColumn,
   useDeleteColumn,
   useUpdateColumn,
+  useUpdateTableSettings, // ✅ NEW
 } from "../../api/reactQueryHooks/useTables";
 
 import AddColumnForm from "./AddColumnForm";
@@ -38,10 +40,10 @@ export default function SettingsTables() {
   const [columnsData, setColumnsData] = useState<any[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string | null>("create");
-
   const [tableName, setTableName] = useState("");
 
-  // Form state (passed down to AddColumnForm)
+  const [showInMenu, setShowInMenu] = useState(true);
+
   const [columnName, setColumnName] = useState("");
   const [columnLabel, setColumnLabel] = useState("");
   const [columnType, setColumnType] = useState("text");
@@ -57,9 +59,17 @@ export default function SettingsTables() {
   const { mutateAsync: updateColumnMutate } = useUpdateColumn(selectedTable, editing || "");
   const { mutateAsync: deleteColumnMutate } = useDeleteColumn(selectedTable);
 
+  // ✅ NEW MUTATION
+  const { mutateAsync: updateTableSettingsMutate, isPending: updatingMenu } =
+    useUpdateTableSettings();
+
   useEffect(() => {
     if (schema?.columns) {
       setColumnsData(schema.columns);
+    }
+
+    if (schema) {
+      setShowInMenu(schema.showInMenu ?? true);
     }
   }, [schema]);
 
@@ -106,18 +116,25 @@ export default function SettingsTables() {
     );
   };
 
-  if (tablesLoading)
+  const updateTableMenu = async () => {
+    await updateTableSettingsMutate({
+      table: selectedTable,
+      data: { showInMenu },
+    });
+    
+  };
+
+  if (tablesLoading) {
     return (
       <div className="w-full h-96 flex items-center justify-center">
         <Loader size="lg" />
       </div>
     );
+  }
 
   return (
     <div className="w-full px-6 py-6 max-w-7xl mx-auto">
-      <Title order={2} mb="md">
-        Settings{" "}
-      </Title>
+      <Title order={2} mb="md">Settings</Title>
 
       <Tabs value={activeTab} onChange={setActiveTab} mb="xl">
         <Tabs.List>
@@ -138,9 +155,7 @@ export default function SettingsTables() {
         <Card withBorder shadow="sm" p="lg" radius="md" mb="xl">
           <Group mb="md">
             <IconDatabase size={24} />
-            <div>
-              <Title order={4}>Create a New Table</Title>
-            </div>
+            <Title order={4}>Create a New Table</Title>
           </Group>
 
           <Divider mb="lg" />
@@ -149,24 +164,19 @@ export default function SettingsTables() {
             <Grid.Col span={8}>
               <TextInput
                 label="Table Name"
-                placeholder="e.g., products, customers, orders"
                 value={tableName}
                 onChange={(e) => setTableName(e.target.value.trim())}
                 leftSection={<IconTable size={16} />}
               />
             </Grid.Col>
+
             <Grid.Col span={4} className="flex items-end">
               <Button
                 fullWidth
                 loading={creatingTable}
                 onClick={() =>
-                  confirmAction(
-                    "Are you sure you want to create this table?",
-                    createNewTable
-                  )
+                  confirmAction("Create this table?", createNewTable)
                 }
-                leftSection={<IconPlus size={16} />}
-                disabled={!tableName.trim()}
               >
                 Create Table
               </Button>
@@ -178,9 +188,7 @@ export default function SettingsTables() {
       <Card withBorder shadow="sm" p="lg" radius="md">
         <Group mb="md">
           <IconDatabase size={24} />
-          <div>
-            <Title order={4}>Select Table to Configure</Title>
-          </div>
+          <Title order={4}>Select Table to Configure</Title>
         </Group>
 
         <Select
@@ -195,17 +203,27 @@ export default function SettingsTables() {
             setActiveTab("edit");
           }}
           mb="lg"
-          leftSection={<IconDatabase size={16} />}
-          searchable
-          clearable
         />
+
+        {selectedTable && (
+          <Card withBorder p="sm" mb="md">
+            <Group justify="space-between">
+              <Switch
+                label="Show this table in sidebar menu"
+                checked={showInMenu}
+                onChange={(e) => setShowInMenu(e.currentTarget.checked)}
+              />
+              <Button size="xs" onClick={updateTableMenu} loading={updatingMenu}>
+                Save
+              </Button>
+            </Group>
+          </Card>
+        )}
 
         {selectedTable && (
           <>
             {schemaLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader />
-              </div>
+              <Loader />
             ) : (
               <>
                 <Alert
@@ -213,7 +231,6 @@ export default function SettingsTables() {
                   title="Column Management"
                   color="blue"
                   mb="xs"
-                  variant="light"
                 />
 
                 <AddColumnForm
@@ -247,12 +264,6 @@ export default function SettingsTables() {
               </>
             )}
           </>
-        )}
-
-        {!selectedTable && tables.length === 0 && (
-          <Alert color="yellow" title="No Tables Found">
-            Create your first table to get started.
-          </Alert>
         )}
       </Card>
     </div>

@@ -19,6 +19,11 @@ export default function Sidebar() {
     );
   }
 
+
+  const visibleTables = tables.filter(
+    (t: any) => t.showInMenu !== false
+  );
+
   return (
     <ScrollArea type="scroll">
       <Stack
@@ -38,7 +43,7 @@ export default function Sidebar() {
         </Button>
 
         {/* DYNAMIC TABLES */}
-        {tables.map((t: any) => {
+        {visibleTables.map((t: any) => {
           const isActive = table === t.tableName;
 
           return (
