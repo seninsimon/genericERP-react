@@ -2,6 +2,7 @@ export const columnTypes = [
   { value: "text", label: "Text", group: "Basic Types" },
   { value: "number", label: "Number", group: "Basic Types" },
   { value: "date", label: "Date", group: "Basic Types" },
+  { value: "boolean", label: "Boolean", group: "Basic Types" },
   { value: "relation", label: "Relation", group: "Advanced Types" },
   { value: "image", label: "Single Image", group: "Media Types" },
   { value: "images", label: "Multiple Images", group: "Media Types" },
