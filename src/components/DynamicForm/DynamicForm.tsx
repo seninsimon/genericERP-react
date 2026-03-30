@@ -100,7 +100,7 @@ export default function DynamicForm({ table }: any) {
 
           rels[col.name] = res.data?.data.map((item: any) => ({
             value: String(item._id),
-            label: item.name || item.title || item._id,
+            label: item.name || item.Name || item.title || item.Title,
           }));
         }
       }
