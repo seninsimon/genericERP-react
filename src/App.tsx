@@ -9,38 +9,34 @@ import TableListPage from "./pages/Table/TableListPage";
 import TableFormPage from "./pages/TableFormPage";
 import SettingsTables from "./pages/settings/SettingsTables";
 
+import ServerLoader from "./components/ServerLoader";
+
 function App({ themeName, setThemeName }: any) {
   return (
     <BrowserRouter>
-      {/* Mantine Confirm Modals */}
       <ModalsProvider>
-        {/* GLOBAL NOTIFICATIONS */}
         <Notifications position="top-right" />
 
-        {/* GLOBAL ERROR BOUNDARY */}
         <ErrorBoundary>
-          <Routes>
-            <Route element={<MainLayout themeName={themeName}
-                  setThemeName={setThemeName}/>}>
-              <Route path="/" element={<SettingsTables />} />
-
-              <Route path="/settings" element={<SettingsTables />} />
-
-              <Route path="/table/:table" element={<TableListPage />} />
-
-              <Route path="/table/:table/new" element={<TableFormPage />} />
-
+          <ServerLoader>
+            <Routes>
               <Route
-                path="/table/:table/view/:id"
-                element={<TableFormPage />}
-              />
-
-              <Route
-                path="/table/:table/edit/:id"
-                element={<TableFormPage />}
-              />
-            </Route>
-          </Routes>
+                element={
+                  <MainLayout
+                    themeName={themeName}
+                    setThemeName={setThemeName}
+                  />
+                }
+              >
+                <Route path="/" element={<SettingsTables />} />
+                <Route path="/settings" element={<SettingsTables />} />
+                <Route path="/table/:table" element={<TableListPage />} />
+                <Route path="/table/:table/new" element={<TableFormPage />} />
+                <Route path="/table/:table/view/:id" element={<TableFormPage />} />
+                <Route path="/table/:table/edit/:id" element={<TableFormPage />} />
+              </Route>
+            </Routes>
+          </ServerLoader>
         </ErrorBoundary>
       </ModalsProvider>
     </BrowserRouter>
